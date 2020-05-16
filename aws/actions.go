@@ -90,11 +90,17 @@ func ProcessActions(table *colly.HTMLElement, rawResources map[string]Resource, 
 						conditions = append(conditions, rawConditions[text])
 					})
 
+					length := len(actionTableDataRow.Resources)
 					if len(conditions) > 0 {
-						length := len(actionTableDataRow.Resources)
-
-						// We have a conditions when there is no resource specified
+						// We have a condition when there is no resource specified
 						actionTableDataRow.Resources[length-1].Conditions = append(actionTableDataRow.Resources[length-1].Conditions, conditions...)
+					} else {
+						// Dirty hack, we don't have conditions, it's possible we also didn't have a resource, so let's pop the last row off the actionTableDataRow if that's the case. We need to re-write this whole file.
+						resource := actionTableDataRow.Resources[length-1]
+
+						if resource.ResourceType == "" {
+							actionTableDataRow.Resources = actionTableDataRow.Resources[:len(actionTableDataRow.Resources)-1]
+						}
 					}
 				} else if td.Index == 5 {
 					td.ForEach("p", func(_ int, p *colly.HTMLElement) {
