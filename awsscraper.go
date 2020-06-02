@@ -3,11 +3,10 @@ package main
 import (
 	"flag"
 
+	"github.com/golang/glog"
 	"github.com/iammadeeasy/awsscraper/configuration"
 	"github.com/iammadeeasy/awsscraper/pages"
 	"github.com/iammadeeasy/awsscraper/utilities"
-
-	"github.com/golang/glog"
 )
 
 func init() {
@@ -18,12 +17,17 @@ func init() {
 func main() {
 	glog.Infoln("Firing up the collector")
 
-	config := configuration.GetConfig()
-	visitPages := pages.GetPages(*config)
+	debug := false
 
-	for i := 0; i < len(visitPages); i++ {
-		url := utilities.URI(*config, visitPages[i])
-		pages.GetPage(url)
-		//time.Sleep(2 * time.Second)
+	if debug == false {
+		config := configuration.GetConfig()
+		visitPages := pages.GetPages(*config)
+
+		for i := 0; i < len(visitPages); i++ {
+			url := utilities.URI(*config, visitPages[i])
+			pages.GetPage(url)
+		}
+	} else {
+		//pages.GetPage("full url of the page to debug")
 	}
 }

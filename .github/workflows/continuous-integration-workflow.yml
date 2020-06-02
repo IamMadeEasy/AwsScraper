@@ -26,9 +26,6 @@ jobs:
         run: go version
       - name: Install dependencies 
         run: go get github.com/gocolly/colly github.com/golang/glog gopkg.in/yaml.v2
-      - name: Apply a patch so we don't have truncated yml lines (https://github.com/go-yaml/yaml/pull/571)
-        run: patch < ${{ github.workspace }}/src/github.com/iammadeeasy/awsscraper/line_length.patch
-        working-directory: ${{ github.workspace }}/src/gopkg.in/yaml.v2/
       - name: Compile
         run: go build awsscraper.go 
         working-directory: ./src/github.com/iammadeeasy/awsscraper/
