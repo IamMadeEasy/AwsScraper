@@ -176,6 +176,7 @@ func ProcessActions(table *colly.HTMLElement, rawResources map[string]Resource, 
 func WriteActions(actionTableDataRows []ActionTableDataRow) {
 	var yamlAction []byte
 	var err error
+        yaml.FutureLineWrap()
 	yamlAction, err = yaml.Marshal(&actionTableDataRows)
 	if err != nil {
 		fmt.Println("error: ", err)
