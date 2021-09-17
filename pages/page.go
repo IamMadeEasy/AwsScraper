@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"regexp"
+        "strings"
 
 	"github.com/iammadeeasy/awsscraper/aws"
 
@@ -53,14 +54,14 @@ func processTables() {
 		// Intentionally parse backwards. We want conditions first, as conditions are used in both resources and actions and resources are used in actions as well
 		for i := len(tables) - 1; i >= 0; i-- {
 			table := tables[i]
-			tableHeader := table.ChildText("table > tbody > tr > th:nth-child(1)")
+			tableHeader := strings.ToLower(table.ChildText("table > thead > tr > th:nth-child(1)"))
 
-			if tableHeader == "Actions" {
+			if tableHeader == "actions" {
 				actionRows := aws.ProcessActions(table, resources, conditions, service, iamPrefix)
 				aws.WriteActions(actionRows)
-			} else if tableHeader == "Resource Types" {
+			} else if tableHeader == "resource types" {
 				resources = aws.ProcessResourceTypes(table, conditions)
-			} else if tableHeader == "Condition Keys" {
+			} else if tableHeader == "condition keys" {
 				conditions = aws.ProcessConditionKeys(table)
 			}
 		}

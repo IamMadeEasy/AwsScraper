@@ -17,7 +17,7 @@ func init() {
 func main() {
 	glog.Infoln("Firing up the collector")
 
-	debug := false
+	debug := false 
 
 	if debug == false {
 		config := configuration.GetConfig()
@@ -28,6 +28,6 @@ func main() {
 			pages.GetPage(url)
 		}
 	} else {
-		//pages.GetPage("full url of the page to debug")
+		//pages.GetPage("https://docs.aws.amazon.com/IAM/latest/UserGuide/./list_awsssodirectory.html")
 	}
 }
