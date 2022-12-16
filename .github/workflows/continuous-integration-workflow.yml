@@ -74,10 +74,10 @@ jobs:
       - name: Installing the awscli so we can upload artifacts to s3
         run: sudo pip install -U awscli
       - name: Uploading artifact to the beta site 
-        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://beta.${{ secrets.AWS_S3_BUCKET }}/iam.yml
+        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} aws s3 cp iam.yml s3://beta.${{ secrets.AWS_S3_BUCKET }}/iam.yml
         working-directory: ./iam.yml
         if: github.ref == 'refs/heads/develop'
       - name: Uploading artifact to the production site
-        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://${{ secrets.AWS_S3_BUCKET }}/iam.yml
+        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} aws s3 cp iam.yml s3://${{ secrets.AWS_S3_BUCKET }}/iam.yml
         working-directory: ./iam.yml
         if: github.ref == 'refs/heads/master'
