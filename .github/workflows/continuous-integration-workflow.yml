@@ -15,8 +15,6 @@ jobs:
       GOPATH: ${{ github.workspace }}
       GO111MODULE: off
     steps:
-      - name: Debug 1
-        run: echo ${{ github.event_name }}
       - name: Checking out code
         uses: actions/checkout@v2
         with:
@@ -59,21 +57,27 @@ jobs:
     name: Upload iam.yml to AWS
     needs: run_awsscraper
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     if: (github.event_name == 'push' || github.event_name == 'schedule') && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
     steps:
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Grab iam from the run job
         uses: actions/download-artifact@v1
         with:
           name: iam.yml
-      - name: huh
-        run: find .
       - name: Installing the awscli so we can upload artifacts to s3
         run: sudo pip install -U awscli
       - name: Uploading artifact to the beta site 
-        run: AWS_DEFAULT_REGION=${{ secrets.AWS_S3_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://beta.${{ secrets.AWS_S3_BUCKET }}/iam.yml
+        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://beta.${{ secrets.AWS_S3_BUCKET }}/iam.yml
         working-directory: ./iam.yml
         if: github.ref == 'refs/heads/develop'
       - name: Uploading artifact to the production site
-        run: AWS_DEFAULT_REGION=${{ secrets.AWS_S3_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://${{ secrets.AWS_S3_BUCKET }}/iam.yml
+        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://${{ secrets.AWS_S3_BUCKET }}/iam.yml
         working-directory: ./iam.yml
         if: github.ref == 'refs/heads/master'
