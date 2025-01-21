@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
-      GO111MODULE: off
+#      GO111MODULE: on
     steps:
       - name: Debug 1
         run: echo ${{ github.event_name }}
@@ -21,16 +21,14 @@ jobs:
         with:
           path: ./src/github.com/iammadeeasy/awsscraper/
       - name: Installing golang
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
       - name: Keep track of go version
         run: go version
-      - name: Install dependencies 
-        run: go get github.com/gocolly/colly github.com/golang/glog gopkg.in/yaml.v2
       - name: Compile
         run: go build awsscraper.go 
         working-directory: ./src/github.com/iammadeeasy/awsscraper/
       - name: Uploading artifact so we can grab it in a deploy job
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: awsscraper
           path: ./src/github.com/iammadeeasy/awsscraper/awsscraper
@@ -40,39 +38,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Grab awsscraper from the build job
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: awsscraper
       - name: Set permissions on the scraper
         run: chmod 0555 ./awsscraper
-        working-directory: ./awsscraper
       - name: Running awsscraper
         run:  ./awsscraper
-        working-directory: ./awsscraper
       - name: Uploading artifact to github so we can grab it from there for troubleshooting should we need 
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: iam.yml
-          path: ./awsscraper/iam.yml
+          path: ./iam.yml
   upload_to_aws:
     name: Upload iam.yml to AWS
+    permissions:
+      id-token: write
+      contents: read
     needs: run_awsscraper
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' || github.event_name == 'schedule') && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
     steps:
       - name: Grab iam from the run job
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: iam.yml
-      - name: huh
-        run: find .
       - name: Installing the awscli so we can upload artifacts to s3
         run: sudo pip install -U awscli
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
       - name: Uploading artifact to the beta site 
-        run: AWS_DEFAULT_REGION=${{ secrets.AWS_S3_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://beta.${{ secrets.AWS_S3_BUCKET }}/iam.yml
-        working-directory: ./iam.yml
+        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} aws s3 cp iam.yml s3://beta.${{ secrets.AWS_S3_BUCKET }}/iam.yml
         if: github.ref == 'refs/heads/develop'
       - name: Uploading artifact to the production site
-        run: AWS_DEFAULT_REGION=${{ secrets.AWS_S3_REGION}} AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} aws s3 cp iam.yml s3://${{ secrets.AWS_S3_BUCKET }}/iam.yml
-        working-directory: ./iam.yml
+        run: AWS_DEFAULT_REGION=${{ secrets.AWS_REGION}} aws s3 cp iam.yml s3://${{ secrets.AWS_S3_BUCKET }}/iam.yml
         if: github.ref == 'refs/heads/master'
