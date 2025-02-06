@@ -6,6 +6,7 @@ on:
       - created
   schedule:
     - cron: '0 1 * * 1'
+  workflow_dispatch:
 jobs:
   build_awsscraper:
     name: Build awsscraper
@@ -14,8 +15,6 @@ jobs:
       GOPATH: ${{ github.workspace }}
 #      GO111MODULE: on
     steps:
-      - name: Debug 1
-        run: echo ${{ github.event_name }}
       - name: Checking out code
         uses: actions/checkout@v2
         with:
@@ -57,8 +56,16 @@ jobs:
       contents: read
     needs: run_awsscraper
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     if: (github.event_name == 'push' || github.event_name == 'schedule') && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Grab iam from the run job
         uses: actions/download-artifact@v4
         with:
