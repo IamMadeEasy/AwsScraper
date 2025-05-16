@@ -56,9 +56,6 @@ jobs:
       contents: read
     needs: run_awsscraper
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     if: (github.event_name == 'push' || github.event_name == 'schedule') && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
     steps:
       - name: Configure AWS credentials
