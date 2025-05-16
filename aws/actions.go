@@ -19,6 +19,7 @@ type ResourceRequired struct {
 
 // ActionTableDataRow -  This handles primary row data in the table
 type ActionTableDataRow struct {
+	Url              string
 	Service          string
 	Action           string
 	Description      string
@@ -29,11 +30,11 @@ type ActionTableDataRow struct {
 }
 
 // ProcessActions - Processes the Actions table into a somewhat useable format
-func ProcessActions(table *colly.HTMLElement, rawResources map[string]Resource, rawConditions map[string]Condition, service string, iamPrefix string) []ActionTableDataRow {
+func ProcessActions(table *colly.HTMLElement, rawResources map[string]Resource, rawConditions map[string]Condition, service string, iamPrefix string, pageUrl string) []ActionTableDataRow {
 	// Need to gather up all rows we encounter
 	var actionTableDataRows []ActionTableDataRow
 	actionTableDataRow := ActionTableDataRow{}
-
+	actionTableDataRow.Url = pageUrl
 	var rows []colly.HTMLElement
 
 	table.ForEach("tr", func(_ int, tr *colly.HTMLElement) {
@@ -165,6 +166,7 @@ func ProcessActions(table *colly.HTMLElement, rawResources map[string]Resource, 
 			if nextRowColumns == 6 {
 				actionTableDataRows = append(actionTableDataRows, actionTableDataRow)
 				actionTableDataRow = ActionTableDataRow{}
+				actionTableDataRow.Url = pageUrl
 			}
 		}
 	}
