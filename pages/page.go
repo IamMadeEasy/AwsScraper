@@ -13,12 +13,14 @@ import (
 var pageCollector = *colly.NewCollector()
 var service = ""
 var iamPrefix = ""
+var pageUrl = ""
 
 // GetPage - Gets data off a page and returns it
 func GetPage(url string) {
 	pageCollector = *colly.NewCollector()
 	fmt.Println("Getting page", url)
 
+	pageUrl = url
 	findService()
 	findIamPrefix()
 	processTables()
@@ -57,7 +59,7 @@ func processTables() {
 			tableHeader := strings.ToLower(table.ChildText("table > thead > tr > th:nth-child(1)"))
 
 			if tableHeader == "actions" {
-				actionRows := aws.ProcessActions(table, resources, conditions, service, iamPrefix)
+				actionRows := aws.ProcessActions(table, resources, conditions, service, iamPrefix, pageUrl)
 				aws.WriteActions(actionRows)
 			} else if tableHeader == "resource types" {
 				resources = aws.ProcessResourceTypes(table, conditions)
